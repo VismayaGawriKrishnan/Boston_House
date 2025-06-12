@@ -36,3 +36,5 @@ input_df = pd.DataFrame([input_features], columns=feature_names)
 # Predict
 prediction = model.predict(input_df)
 
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)
