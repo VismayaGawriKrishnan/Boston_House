@@ -1,10 +1,15 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import pickle
-import numpy as np
 
 app = Flask(__name__)
+
+# Load trained model
 model = pickle.load(open('boston_model.pkl', 'rb'))
+
+# Define feature names (used when converting input into DataFrame)
+feature_names = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 
+                 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT']
 
 @app.route('/')
 def home():
@@ -12,29 +17,21 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    features = [float(x) for x in request.form.values()]
-    final = [np.array(features)]
-    prediction = model.predict(final)[0]
-    return render_template('index.html', prediction_text=f'Predicted House Price: ${round(prediction*1000, 2)}')
+    try:
+        # Extract values from form and convert to float
+        input_features = [float(request.form[str(i)]) for i in range(13)]
 
-if __name__ == "__main__":
-    app.run(debug=True)
+        # Convert to DataFrame to match training input structure
+        input_df = pd.DataFrame([input_features], columns=feature_names)
 
-model = pickle.load(open('boston_model.pkl', 'rb'))
+        # Predict using the trained model
+        prediction = model.predict(input_df)[0]
 
+        # Show the result
+        return render_template('index.html', prediction_text=f'Predicted House Price: ${round(prediction * 1000, 2)}')
 
-# Feature names in the same order used for training
-feature_names = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 
-                 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT']
-
-# After collecting values from the form
-input_features = [float(request.form[str(i)]) for i in range(13)]
-
-# Wrap as DataFrame with column names
-input_df = pd.DataFrame([input_features], columns=feature_names)
-
-# Predict
-prediction = model.predict(input_df)
+    except Exception as e:
+        return render_template('index.html', prediction_text=f'Error: {e}')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
