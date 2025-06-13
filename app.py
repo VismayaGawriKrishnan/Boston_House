@@ -18,18 +18,13 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Extract form inputs and convert to float
         input_features = [float(request.form[str(i)]) for i in range(13)]
-
-        # Create DataFrame with correct feature names
         input_df = pd.DataFrame([input_features], columns=feature_names)
-
-        # Predict
         prediction = model.predict(input_df)[0]
-
         return render_template('index.html', prediction_text=f'Predicted House Price: ${round(prediction * 1000, 2)}')
     except Exception as e:
         return render_template('index.html', prediction_text=f'Error: {e}')
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
