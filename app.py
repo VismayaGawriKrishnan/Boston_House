@@ -7,9 +7,9 @@ app = Flask(__name__)
 # Load trained model
 model = pickle.load(open('boston_model.pkl', 'rb'))
 
-# Define feature names (used when converting input into DataFrame)
-feature_names = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 
-                 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT']
+# Define feature names (must match the model's training columns exactly)
+feature_names = ['crim', 'zn', 'indus', 'chas', 'nox', 'rm', 
+                 'age', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat']
 
 @app.route('/')
 def home():
@@ -18,18 +18,16 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Extract values from form and convert to float
+        # Extract form inputs and convert to float
         input_features = [float(request.form[str(i)]) for i in range(13)]
 
-        # Convert to DataFrame to match training input structure
+        # Create DataFrame with correct feature names
         input_df = pd.DataFrame([input_features], columns=feature_names)
 
-        # Predict using the trained model
+        # Predict
         prediction = model.predict(input_df)[0]
 
-        # Show the result
         return render_template('index.html', prediction_text=f'Predicted House Price: ${round(prediction * 1000, 2)}')
-
     except Exception as e:
         return render_template('index.html', prediction_text=f'Error: {e}')
 
